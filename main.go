@@ -1,9 +1,16 @@
 package main
 
 /* 
-1. write function     []
-2. write server       []
-3. write API functino []
+1. write all functions                      [ ]
+    ->function1: find studs for base         ->[x]
+    ->function2: find studs for all walls    ->[ ]
+    ->function3: find studs for roof         ->[ ]
+    ->function4: find total floorply         ->[ ]
+    ->function5: find total finishedply      ->[ ]
+    ->function6: find total roofply          ->[ ]
+
+2. write server/routes                      [ ]
+3. write API functino                       [ ] 
 */
 
 import (
@@ -25,27 +32,23 @@ type Lumber struct {
     Sixteen int `json:"sixteen"`
     Floorply int `json:"floorply"`
     Finishedply int `json:"finishedply"`
-    OSBply int `json:"osbply"`
+    Roofply int `json:"roofply"`
 }
 
 
 func main() {
     fmt.Println("sup")
     fmt.Println("Materials for an 8'x20' shed with height of 8'")
-    CalculateMaterials(8, 20, 8)
+    //CalculateMaterials(8, 20, 8)
+    CalculateMaterials(96, 240, 96)
 }
 
 //accepts a JSON payload with shed data.
-//calculate required materials given the length, width and height in feet
-//if shed is 8x20, then
+//calculate required materials given the length, width and height in INCHES. not feet
+//if shed is 8'x20'x8' (96"x240"x96"), then
 // base needs to find least required material to build shed
 func CalculateMaterials(length int, width int, height int) {
-    longer := -1
-    shorter := -1
-
     //floor base
-    fmt.Println("longer: ", longer, "\nshorter: ", shorter)
-    
     fmt.Println("BASE STUDS: ", findBaseStuds(SetLongerShorter(length, width)))
     //wall
     fmt.Println("LONG WALL STUDS: ", findWallStuds(SetLongerShorter(length, width)))
@@ -65,14 +68,14 @@ func SetLongerShorter(num1, num2 int) (longer, shorter int) {
 }
 
 func findMinimum(measurement int) int {
-    if measurement >= 16 {
-        return 16
-    } else if measurement >= 12 {
-        return 12
-    } else if measurement >= 10 {
-        return 10
+    if measurement >= 192 {
+        return 192
+    } else if measurement >= 144 {
+        return 144
+    } else if measurement >= 120 {
+        return 120
     } else {
-        return 8
+        return 96
     }
 }
 
@@ -80,29 +83,29 @@ func findMinimum(measurement int) int {
 func findBaseStuds(longer int, shorter int) (map[int]int) {
     studMap := make(map[int]int)
     
-    if (longer > 16) {
-        fmt.Println("length (", longer, ") longer than 16 feet, calculated ", (((longer%16)*12) / 16) + 1, " studs, and subtracting ", (longer%16), " from total length")
-        fmt.Println((longer%16), " feet = ", (longer%16)*12, " inches.")
-        fmt.Println((longer%16)*12, " / 16 + 1 = ", ((longer%16)*12 / 16)+1)
-        studMap[findMinimum(shorter)]+=(((longer%16)*12) / 16) +1
-        if (findMinimum((longer%16)) / (longer%16) ) >= 2 {
-            studMap[findMinimum((longer%16))]+=1
+    if (longer > 192) {
+        fmt.Println("length (", longer, ") longer than 16 feet (192), calculated ", (((longer%192)) / 16) + 1, " studs, and subtracting ", (longer%192), " from total length")
+        fmt.Println((longer%192), " feet = ", (longer%192), " inches.")
+        fmt.Println((longer%192), " / 16 + 1 = ", ((longer%192) / 16)+1)
+        studMap[findMinimum(shorter)]+=(((longer%192)) / 16) +1
+        if (findMinimum((longer%192)) / (longer%192) ) >= 2 {
+            studMap[findMinimum((longer%192))]+=1
         } else {
-            studMap[findMinimum((longer%16))]+=2
+            studMap[findMinimum((longer%192))]+=2
         }
 
-        longer -= (longer%16)
+        longer -= (longer%192)
     }
 
     fmt.Println("studMap: ", studMap)
 
     fmt.Println("# of studs required for ", longer, " feet:")
     //8 * 12 = 96 / 16, 32, 48, 64, 80, 96
-    fmt.Println(longer, " feet = ", longer*12, " inches.")
-    fmt.Println(longer*12, " / 16 = ", (longer*12 / 16))
-    fmt.Println("1:", ((longer * 12) / 16)+1)
+    fmt.Println(longer, " feet = ", longer, " inches.")
+    fmt.Println(longer, " / 16 = ", (longer / 16))
+    fmt.Println("1:", ((longer ) / 16)+1)
 
-    studMap[findMinimum(shorter)] += ((longer * 12) / 16) + 1
+    studMap[findMinimum(shorter)] += ((longer ) / 16) + 1
         if (findMinimum(longer) / longer) >= 2 {
             studMap[findMinimum(longer)]+=1
         } else {
@@ -114,33 +117,35 @@ func findBaseStuds(longer int, shorter int) (map[int]int) {
 }
 
 //find studs assuming 24 inch centers
-//find studs for long walls first, then shorter walls.
+//find studs for all four walls.
+//find studs for long walls (do one and just "x2" it.)
+//find studs for shorter walls (remember to subtract 7 inches from total inches)
 func findWallStuds(longer int, shorter int) (map[int]int) {
     studMap := make(map[int]int)
     
-    if (longer > 24) {
-        fmt.Println("length (", longer, ") longer than 16 feet, calculated ", (((longer%24)*12) / 24) + 1, " studs, and subtracting ", (longer%24), " from total length")
-        fmt.Println((longer%24), " feet = ", (longer%24)*12, " inches.")
-        fmt.Println((longer%24)*12, " / 24 + 1 = ", ((longer%24)*12 / 24)+1)
-        studMap[findMinimum(shorter)]+=(((longer%24)*12) / 24) +1
-        if (findMinimum((longer%24)) / (longer%24) ) >= 2 {
-            studMap[findMinimum((longer%24))]+=1
+    if (longer > 192) {
+        fmt.Println("length (", longer, ") longer than 16 feet (192), calculated ", (((longer%192)) / 24) + 1, " studs, and subtracting ", (longer%192), " from total length")
+        fmt.Println((longer%192), " feet = ", (longer%192), " inches.")
+        fmt.Println((longer%192), " / 24 + 1 = ", ((longer%192) / 24)+1)
+        studMap[findMinimum(shorter)]+=(((longer%192)) / 24) +1
+        if (findMinimum((longer%192)) / (longer%192) ) >= 2 {
+            studMap[findMinimum((longer%192))]+=1
         } else {
-            studMap[findMinimum((longer%24))]+=2
+            studMap[findMinimum((longer%192))]+=2
         }
 
-        longer -= (longer%24)
+        longer -= (longer%192)
     }
 
     fmt.Println("studMap: ", studMap)
 
     fmt.Println("# of studs required for ", longer, " feet:")
     //8 * 12 = 96 / 24, 32, 48, 64, 80, 96
-    fmt.Println(longer, " feet = ", longer*12, " inches.")
-    fmt.Println(longer*12, " / 24 = ", (longer*12 / 24))
-    fmt.Println("1:", ((longer * 12) / 24)+1)
+    fmt.Println(longer, " feet = ", longer, " inches.")
+    fmt.Println(longer, " / 24 = ", (longer / 24))
+    fmt.Println("1:", ((longer ) / 24)+1)
 
-    studMap[findMinimum(shorter)] += ((longer * 12) / 24) + 1
+    studMap[findMinimum(shorter)] += ((longer ) / 24) + 1
         if (findMinimum(longer) / longer) >= 2 {
             studMap[findMinimum(longer)]+=1
         } else {
