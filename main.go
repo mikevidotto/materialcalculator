@@ -6,8 +6,8 @@ package main
     ->function2: find studs for all walls    ->[x]
     ->function3: find studs for roof         ->[x]
     ->function4: find total floorply         ->[x]
-    ->function5: find total finishedply      ->[ ]
-    ->function6: find total roofply          ->[ ]
+    ->function5: find total finishedply      ->[x]
+    ->function6: find total roofply          ->[x]
 
 2. write server/routes                      [ ]
 3. write API functino                       [ ] 
@@ -70,6 +70,27 @@ func CalculateMaterials(length int, width int, height int) {
 	}
 
 	fmt.Println("\n\n\nMATERIAL MAP after roof rake calculation: ", MaterialMap, "\n\n\n")
+
+    tempMap = findFloorPly(longer, shorter)
+    for sheetIndex, quantity := range tempMap {
+        MaterialMap[sheetIndex] += quantity
+    }
+
+	fmt.Println("\n\n\nMATERIAL MAP after floor ply calculation: ", MaterialMap, "\n\n\n")
+
+    tempMap = findFinishedPly(longer, shorter, height)
+    for sheetIndex, quantity := range tempMap {
+        MaterialMap[sheetIndex] += quantity
+    }
+
+	fmt.Println("\n\n\nMATERIAL MAP after finished ply calculation: ", MaterialMap, "\n\n\n")
+
+    tempMap = findRoofPly(longer, shorter)
+    for sheetIndex, quantity := range tempMap {
+        MaterialMap[sheetIndex] += quantity
+    }
+
+	fmt.Println("\n\n\nMATERIAL MAP after roof ply calculation: ", MaterialMap, "\n\n\n")
 }
 
 func SetLongerShorter(num1, num2 int) (longer, shorter int) {
@@ -213,16 +234,7 @@ func findWallStuds(longer, shorter, height int) (map[int]int) {
 func findRoofStuds(longer, shorter int) (map[int]int) {
 	studMap := make(map[int]int)
 
-	//find rake length (eg. 8ft width is 52) - use shorter
-	//find run (span / 2)
-	run := float64(shorter) / 2.0
-	//find pitch (5/12 or 22.5 degrees)
-	pitch := 5.0/12.0
-	//find verticalrise (pitch * run)
-	verticalRise := float64(pitch * run)
-
-	//find rake length (pythagorean theorem)
-	rakeLengthFloat:= math.Hypot(float64(verticalRise), float64(run))
+    rakeLengthFloat := CalculateRoofRakeLength(shorter)
 	fmt.Println(rakeLengthFloat)
 	rakeLengthInt := int(rakeLengthFloat)
 	fmt.Println(rakeLengthInt)
@@ -232,4 +244,65 @@ func findRoofStuds(longer, shorter int) (map[int]int) {
 	studMap[findMinimum(rakeLengthInt * 2)] += longer / 16
 
 	return studMap
+}
+
+func CalculateRoofRakeLength(length int) float64 {
+	//find rake length (eg. 8ft width is 52) - use shorter
+	//find run (span / 2)
+	run := float64(length) / 2.0
+	//find pitch (5/12 or 22.5 degrees)
+	pitch := 5.0/12.0
+	//find verticalrise (pitch * run)
+	verticalRise := float64(pitch * run)
+
+	//find rake length (pythagorean theorem)
+	rakeLengthFloat:= math.Hypot(float64(verticalRise), float64(run))
+    return rakeLengthFloat
+}
+
+func findFloorPly(length, width int) map[int]int {
+    floorPlyMap:= make(map[int]int)
+    //all ply comes in 4'x8' (48"x96")
+    //for sheds with a width of 8' or less, we simply divide the length by 4 to get the number of sheets
+    //1. find the area of the shed.
+    shedArea := length * width
+    //2. calculate area of sheet
+    sheetArea := 48 * 96
+    //3. find number of sheets required based on area.
+    floorPlyMap[1] += shedArea / sheetArea
+
+    //for sheds with a width of 10' or more, we do the same thing but then need to account for the remainder
+
+    return floorPlyMap 
+}
+
+func findFinishedPly(length, width, height int) map[int]int {
+    finishedPlyMap := make(map[int]int)
+    sheetArea := 48 * 96
+
+    WallArea1 := length * height
+    WallArea2 := length * height
+
+    WallArea3 := width* height
+    WallArea4 := width* height
+
+    TotalArea := WallArea1 + WallArea2 + WallArea3 + WallArea4
+
+    finishedPlyMap[2] += TotalArea / sheetArea
+
+    return finishedPlyMap
+}
+
+func findRoofPly(length, width int) map[int]int {
+    roofPlyMap := make(map[int]int)
+    sheetArea := 48 * 96
+    rakeLengthFloat := CalculateRoofRakeLength(width)
+    fmt.Println(rakeLengthFloat)
+
+    roofArea := (length * int(rakeLengthFloat)) * 2
+fmt.Println("roofArea:" , roofArea)
+
+    roofPlyMap[3] += int(math.Ceil(float64(roofArea) / float64(sheetArea)))
+
+    return roofPlyMap
 }
