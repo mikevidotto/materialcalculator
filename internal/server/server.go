@@ -4,7 +4,6 @@ import (
     "fmt"
     "net/http"
     "log"
-    "materialcalculator/internal/materialcalculator"
     "materialcalculator/internal/orders"
     "encoding/json"
     "path/filepath"
