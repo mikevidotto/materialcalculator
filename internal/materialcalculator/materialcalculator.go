@@ -113,27 +113,22 @@ func findBaseStuds(longer int, shorter int) (map[int]int) {
     studMap := make(map[int]int)
     
     if (longer > 192) {
-        
-        
-        
         studMap[findMinimum(shorter)]+=(((longer%192)) / 16) +1
         if (findMinimum((longer%192)) / (longer%192) ) >= 2 {
             studMap[findMinimum((longer%192))]+=1
         } else {
             studMap[findMinimum((longer%192))]+=2
         }
-
         longer -= (longer%192)
     }
 
     studMap[findMinimum(shorter)] += ((longer ) / 16) + 1
-        if (findMinimum(longer) / longer) >= 2 {
-            studMap[findMinimum(longer)]+=1
-        } else {
-            studMap[findMinimum(longer)]+=2
-        }
 
-   
+    if (findMinimum(longer) / longer) >= 2 {
+        studMap[findMinimum(longer)]+=1
+    } else {
+        studMap[findMinimum(longer)]+=2
+    }
     return studMap 
 }
 
