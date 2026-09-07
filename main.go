@@ -9,13 +9,11 @@ package main
     ->function5: find total finishedply      ->[x]
     ->function6: find total roofply          ->[x]
 
-2. write server/routes                      [ ]
-3. write API functino                       [ ] 
+2. write server/routes                      [x]
+3. write API functino                       [x] 
 */
 
 import (
-    "fmt"
-    "materialcalculator/internal/materialcalculator"
     "materialcalculator/internal/server"
 )
 
@@ -24,17 +22,6 @@ import (
 //if shed is 8'x20'x8' (96"x240"x96"), then
 // base needs to find least required material to build shed
 func main() {
-    fmt.Println("Materials for an 8'x20' (96\"x240\"x96\") shed with height of 8'")
-    Shed := materialcalculator.ShedData {
-        Length: 96,
-        Width: 240,
-        Height: 96,
-    }
-
-    Lumber := materialcalculator.CalculateMaterials(Shed)
-
-    fmt.Printf("%#v\n", Lumber)
-
     server.StartServer()
 }
 

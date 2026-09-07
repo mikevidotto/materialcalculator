@@ -22,7 +22,6 @@ type LumberData struct {
 }
 
 func CalculateMaterials(Shed ShedData) LumberData {
-
 	MaterialMap := make(map[int]int)
     longer, shorter := SetLongerShorter(Shed.Length, Shed.Width)
     
@@ -268,7 +267,7 @@ func findFloorPly(length, width int) map[int]int {
     //2. calculate area of sheet
     sheetArea := 48 * 96
     //3. find number of sheets required based on area.
-    floorPlyMap[1] += shedArea / sheetArea
+    floorPlyMap[1] += int(math.Ceil(float64(shedArea) / float64(sheetArea)))
 
     //for sheds with a width of 10' or more, we do the same thing but then need to account for the remainder
 
@@ -287,7 +286,7 @@ func findFinishedPly(length, width, height int) map[int]int {
 
     TotalArea := WallArea1 + WallArea2 + WallArea3 + WallArea4
 
-    finishedPlyMap[2] += TotalArea / sheetArea
+    finishedPlyMap[2] += int(math.Ceil(float64(TotalArea) / float64(sheetArea)))
 
     return finishedPlyMap
 }

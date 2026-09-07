@@ -6,11 +6,20 @@ import (
     "log"
     "materialcalculator/internal/materialcalculator"
     "encoding/json"
+    "path/filepath"
 )
 
 func StartServer() {
-    http.HandleFunc("/calculate", CalculateMaterials)
-    err := http.ListenAndServe("localhost:8085", nil)
+    filepath, _ := filepath.Abs("./frontend/")
+    fmt.Println("looking for frontend path, ", filepath) 
+    fs := http.FileServer(http.Dir(filepath))
+
+
+    http.Handle("/", http.StripPrefix("/", fs))
+    http.HandleFunc("/api/calculate", CalculateMaterials)
+
+    log.Println("starting server on localhost:8085...")
+    err := http.ListenAndServe(":8085", nil)
     if err != nil {
         log.Fatal("error starting server: ", err)
     }
@@ -30,12 +39,17 @@ func CalculateMaterials(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+
+    fmt.Printf("\n\nShed Received:\n%#v\n", shed, "\n")
+    shed.Length = shed.Length * 12
+    shed.Width = shed.Width * 12
+    shed.Height = shed.Height * 12
+
     lumber := materialcalculator.CalculateMaterials(shed)
 
-    fmt.Printf("RECEIVED DATA: \n\n\n%#v\n", lumber)
+    fmt.Printf("%#v\n", lumber)
 
-    fmt.Println("ok??")
     w.WriteHeader(http.StatusOK)
-    w.Write([]byte("materials data received."))
+    w.Write([]byte("Shed Materials Data received."))
 }
 
