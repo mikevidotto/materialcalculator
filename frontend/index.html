@@ -53,6 +53,22 @@
     .dimension-wrap { position: relative; }
     .dimension-wrap input { padding-right: 42px; }
     .unit { position: absolute; top: 50%; right: 13px; transform: translateY(-50%); color: var(--muted); font-size: .84rem; font-weight: 700; pointer-events: none; }
+
+    .roof-options { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+    .roof-option { position: relative; }
+    .roof-option input { position: absolute; opacity: 0; pointer-events: none; }
+    .roof-card {
+      min-height: 126px; padding: 16px; border: 1px solid var(--line); border-radius: 14px;
+      background: #fbfcfb; display: flex; align-items: center; gap: 16px; cursor: pointer;
+      transition: border-color .15s ease, box-shadow .15s ease, background .15s ease, transform .15s ease;
+    }
+    .roof-card:hover { border-color: #bcc9c2; transform: translateY(-1px); }
+    .roof-option input:checked + .roof-card { border-color: var(--brand); background: #f3f8f6; box-shadow: 0 0 0 4px var(--focus); }
+    .roof-icon { width: 82px; height: 64px; flex: 0 0 82px; }
+    .roof-icon svg { width: 100%; height: 100%; fill: none; stroke: var(--brand); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .roof-copy strong { display: block; margin-bottom: 4px; color: var(--text); }
+    .roof-copy span { display: block; color: var(--muted); font-size: .84rem; }
+
     .actions { margin-top: 24px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
     .submit-button { min-height: 50px; padding: 0 22px; border: 0; border-radius: 999px; background: var(--brand); color: #fff; font-weight: 800; cursor: pointer; transition: .15s ease; }
     .submit-button:hover { background: var(--brand-dark); transform: translateY(-1px); }
@@ -74,7 +90,7 @@
       .header-note { display: none; }
       main { width: min(calc(100% - 22px),1100px); padding-bottom: 36px; }
       .form-card { padding: 22px; }
-      .grid.two,.grid.three,.benefits { grid-template-columns: 1fr; }
+      .grid.two,.grid.three,.benefits,.roof-options { grid-template-columns: 1fr; }
       h1 { font-size: clamp(2.7rem,15vw,4.2rem); }
       .actions { align-items: stretch; flex-direction: column; }
       .submit-button { width: 100%; }
@@ -92,10 +108,10 @@
       <section class="intro">
         <p class="eyebrow">Custom shed quote</p>
         <h1>Tell us what you want to build.</h1>
-        <p class="intro-copy">Enter your shed dimensions and contact information. We’ll use the details to calculate the project and prepare the next step.</p>
+        <p class="intro-copy">Enter your shed dimensions, choose a roof style, and add your contact information. We’ll use the details to calculate the project and prepare the next step.</p>
         <ul class="benefits">
           <li><span class="benefit-dot">✓</span>Custom dimensions</li>
-          <li><span class="benefit-dot">✓</span>8 ft default height</li>
+          <li><span class="benefit-dot">✓</span>Gable or lean-to roof</li>
           <li><span class="benefit-dot">✓</span>Fast project request</li>
         </ul>
       </section>
@@ -138,6 +154,38 @@
             </div>
           </div>
 
+
+          <p class="section-label">Roof style</p>
+          <div class="roof-options">
+            <div class="roof-option">
+              <input id="gable" name="roofType" type="radio" value="gable" checked />
+              <label class="roof-card" for="gable">
+                <div class="roof-icon" aria-hidden="true">
+                  <svg viewBox="0 0 82 64">
+                    <path d="M13 31 41 12l28 19" />
+                    <path d="M17 29v27h48V29" />
+                    <path d="M33 56V39h16v17" />
+                  </svg>
+                </div>
+                <div class="roof-copy"><strong>Gable roof</strong><span>Classic two-sided pitched roof.</span></div>
+              </label>
+            </div>
+
+            <div class="roof-option">
+              <input id="lean-to" name="roofType" type="radio" value="lean-to" />
+              <label class="roof-card" for="lean-to">
+                <div class="roof-icon" aria-hidden="true">
+                  <svg viewBox="0 0 82 64">
+                    <path d="M12 23 69 13" />
+                    <path d="M16 22v34h49V14" />
+                    <path d="M33 56V39h16v17" />
+                  </svg>
+                </div>
+                <div class="roof-copy"><strong>Lean-to roof</strong><span>Simple single-slope roof profile.</span></div>
+              </label>
+            </div>
+          </div>
+
           <p class="section-label">Project notes</p>
           <div class="field">
             <label for="notes">Anything else we should know?</label>
@@ -171,10 +219,11 @@
         length: Number(formData.get("length")),
         width: Number(formData.get("width")),
         height: Number(formData.get("height")),
+        roofType: formData.get("roofType"),
         notes: formData.get("notes").trim()
       };
 
-      if (!payload.name || !payload.email || !Number.isFinite(payload.length) || !Number.isFinite(payload.width) || !Number.isFinite(payload.height) || payload.length <= 0 || payload.width <= 0 || payload.height <= 0) {
+      if (!payload.name || !payload.email || !payload.roofType || !Number.isFinite(payload.length) || !Number.isFinite(payload.width) || !Number.isFinite(payload.height) || payload.length <= 0 || payload.width <= 0 || payload.height <= 0) {
         showStatus("Please complete the required fields with valid values.", "error");
         return;
       }

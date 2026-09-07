@@ -1,6 +1,7 @@
 package materialcalculator
 
 import (
+    "fmt"
     "math"
 )
 
@@ -8,6 +9,7 @@ type ShedData struct {
     Length int `json:"length"`
     Width int `json:"width"`
     Height int `json:"height"`
+    RoofType string `json:"roofType"`
 }
 
 type LumberData struct {
@@ -29,18 +31,53 @@ func CalculateShedMaterials(Shed ShedData) LumberData {
 	for studlength, quantity:= range tempMap {
 		MaterialMap[studlength] += quantity
 	}
+    //fmt.Printf("%#v\n", tempMap)
 
-    //wall
-	tempMap = findWallStuds(longer, shorter, Shed.Height)
-	for studlength, quantity:= range tempMap {
-		MaterialMap[studlength] += quantity
-	}
+    switch Shed.RoofType {
+        //gable roof
+        case "gable":
+            //wall
+            tempMap = findGableWallStuds(longer, shorter, Shed.Height)
+            for studlength, quantity:= range tempMap {
+                MaterialMap[studlength] += quantity
+            }
 
-    //roof
-	tempMap = findRoofStuds(longer, shorter)
-	for studlength, quantity:= range tempMap {
-		MaterialMap[studlength] += quantity
-	}
+            //roof
+			tempMap = findGableRoofStuds(longer, shorter)
+			for studlength, quantity:= range tempMap {
+				MaterialMap[studlength] += quantity
+	        }
+
+            //roof sheets
+            tempMap = findGableRoofPly(longer, shorter)
+            for sheetIndex, quantity := range tempMap {
+                MaterialMap[sheetIndex] += quantity
+            }
+        //leanto roof
+        case "lean-to":
+            slope := 5.0/12.0
+            rise := slope * float64(Shed.Height)
+            TallStudHeight := Shed.Height + int(rise)
+
+            //wall
+            tempMap = findLeanToWallStuds(longer, shorter, Shed.Height, TallStudHeight)
+            for studlength, quantity:= range tempMap {
+                MaterialMap[studlength] += quantity
+            }
+
+            //roof
+			tempMap = findLeanToRoofStuds(longer, shorter)
+			for studlength, quantity:= range tempMap {
+				MaterialMap[studlength] += quantity
+	        }
+        
+            //roof sheets
+            tempMap = findLeanToRoofPly(longer, shorter)
+            for sheetIndex, quantity := range tempMap {
+                MaterialMap[sheetIndex] += quantity
+            }
+            
+    }
 
     //floor sheets 
     tempMap = findFloorPly(longer, shorter)
@@ -54,11 +91,6 @@ func CalculateShedMaterials(Shed ShedData) LumberData {
         MaterialMap[sheetIndex] += quantity
     }
 
-    //roof sheets
-    tempMap = findRoofPly(longer, shorter)
-    for sheetIndex, quantity := range tempMap {
-        MaterialMap[sheetIndex] += quantity
-    }
 
     Lumber := LumberData {}
 
@@ -132,60 +164,127 @@ func findBaseStuds(longer int, shorter int) (map[int]int) {
     return studMap 
 }
 
+func findLeanToWallStuds(longer, shorter, height1, height2 int) (map[int]int) {
+    studMap := make(map[int]int)
+	//each short wall will lose 7 inches on each side since they will join with each existing long wall.
+	shorter = shorter-7
+    remainderwall := (longer%192)
+    
+	//if wall is longer than 16feet, find the materials for the remainder (eg. 20ft wall would need to calculate materials for a 4 foot wall and a 16 foot wall)
+    if (longer > 192) {
+        studMap[findMinimum(height1)]+=((remainderwall) / 24) +1
+        //fmt.Println((remainderwall / 24) + 1)
+        studMap[findMinimum(height2)]+=((remainderwall) / 24) +1
+        //fmt.Println((remainderwall / 24) + 1)
+		//if the minimum plate required divided by the length needed is greater than 2, we can use one stud for the same plate, so only add one.
+        if (findMinimum(remainderwall) / (longer%192) ) >= 2 {
+            //fmt.Println("2")
+            studMap[findMinimum(remainderwall)]+=2
+        } else {
+            //fmt.Println("4")
+            studMap[findMinimum(remainderwall)]+=4
+        }
+        longer -= remainderwall
+    }
+
+	//calculate first wall, then duplicate
+    studMap[findMinimum(height1)] += ((longer ) / 24) + 1
+    //fmt.Println((longer / 24) +1)
+	
+	studMap[findMinimum(height2)] += ((longer) / 24) + 1
+    //fmt.Println((longer / 24) +1)
+	
+        if (findMinimum(longer) / longer) >= 2 {
+            studMap[findMinimum(longer)]+=2
+        //fmt.Println("2")
+        } else {
+            studMap[findMinimum(longer)]+=4
+        //fmt.Println("4")
+        }
+
+	//calculate second wall, then duplicate
+	studMap[findMinimum(height1)] += int(math.Ceil((float64(shorter) / 24)) +1)
+    //fmt.Println((shorter / 24) +1)
+    //fmt.Println("math.Ceil:", math.Ceil((float64(shorter) / 24)) +1)
+	
+	studMap[findMinimum(height1)] += int(math.Ceil((float64(shorter) / 24)) +1)
+    //fmt.Println((shorter / 24) +1)
+    //fmt.Println("math.Ceil:", math.Ceil((float64(shorter) / 24)) +1)
+        if (findMinimum(shorter) / shorter) >= 2 {
+            studMap[findMinimum(shorter)]+=2
+            //fmt.Println("2")
+        } else {
+            studMap[findMinimum(shorter)]+=4
+            //fmt.Println("4")
+        }
+
+    return studMap 
+}
+
 //find studs assuming 24 inch centers
 //find studs for all four walls.
 //find studs for long walls (do one and just "x2" it.)
 //find studs for shorter walls (remember to subtract 7 inches from total inches)
-func findWallStuds(longer, shorter, height int) (map[int]int) {
+func findGableWallStuds(longer, shorter, height int) (map[int]int) {
     studMap := make(map[int]int)
 	//each short wall will lose 7 inches on each side since they will join with each existing long wall.
 	shorter = shorter-7
+    remainderwall := (longer%192)
     
 	//if wall is longer than 16feet, find the materials for the remainder (eg. 20ft wall would need to calculate materials for a 4 foot wall and a 16 foot wall)
     if (longer > 192) {
-        
-        studMap[findMinimum(height)]+=(((longer%192)) / 24) +1
+        studMap[findMinimum(height)]+=((remainderwall) / 24) +1
+        //fmt.Println((remainderwall / 24) + 1)
+        studMap[findMinimum(height)]+=((remainderwall) / 24) +1
+        //fmt.Println((remainderwall / 24) + 1)
 		//if the minimum plate required divided by the length needed is greater than 2, we can use one stud for the same plate, so only add one.
-        if (findMinimum((longer%192)) / (longer%192) ) >= 2 {
-            studMap[findMinimum((longer%192))]+=1
-			
+        if (findMinimum(remainderwall) / (longer%192) ) >= 2 {
+            //fmt.Println("2")
+            studMap[findMinimum(remainderwall)]+=2
         } else {
-            studMap[findMinimum((longer%192))]+=2
+            //fmt.Println("4")
+            studMap[findMinimum(remainderwall)]+=4
         }
-
-        longer -= (longer%192)
+        longer -= remainderwall
     }
 
 	//calculate first wall, then duplicate
     studMap[findMinimum(height)] += ((longer ) / 24) + 1
+    //fmt.Println((longer / 24) +1)
 	
 	studMap[findMinimum(height)] += ((longer) / 24) + 1
+    //fmt.Println((longer / 24) +1)
 	
         if (findMinimum(longer) / longer) >= 2 {
-            studMap[findMinimum(longer)]+=1
-			
-        } else {
             studMap[findMinimum(longer)]+=2
-			
+        //fmt.Println("2")
+        } else {
+            studMap[findMinimum(longer)]+=4
+        //fmt.Println("4")
         }
 
 	//calculate second wall, then duplicate
-    studMap[findMinimum(height)] += ((shorter) / 24) + 1
+	studMap[findMinimum(height)] += int(math.Ceil((float64(shorter) / 24)) +1)
+    //fmt.Println((shorter / 24) +1)
+    //fmt.Println("math.Ceil:", math.Ceil((float64(shorter) / 24)) +1)
 	
-	studMap[findMinimum(height)] += ((shorter) / 24) + 1
-	
+	studMap[findMinimum(height)] += int(math.Ceil((float64(shorter) / 24)) +1)
+    //fmt.Println((shorter / 24) +1)
+    //fmt.Println("math.Ceil:", math.Ceil((float64(shorter) / 24)) +1)
         if (findMinimum(shorter) / shorter) >= 2 {
-            studMap[findMinimum(shorter)]+=1
-			
-        } else {
             studMap[findMinimum(shorter)]+=2
+            //fmt.Println("2")
+        } else {
+            studMap[findMinimum(shorter)]+=4
+            //fmt.Println("4")
         }
+
     return studMap 
 }
 
-func findRoofStuds(longer, shorter int) (map[int]int) {
+func findGableRoofStuds(longer, shorter int) (map[int]int) {
 	studMap := make(map[int]int)
-    rakeLengthFloat := CalculateRoofRakeLength(shorter)
+    rakeLengthFloat := CalculateGableRoofRakeLength(shorter)
 	rakeLengthInt := int(rakeLengthFloat)
 
 	//find number of trusses required for every 16 inches - use longer
@@ -194,10 +293,34 @@ func findRoofStuds(longer, shorter int) (map[int]int) {
 	return studMap
 }
 
-func CalculateRoofRakeLength(length int) float64 {
+func findLeanToRoofStuds(longer, shorter int) (map[int]int) {
+	studMap := make(map[int]int)
+    rakeLengthFloat := CalculateLeanToRoofRakeLength(shorter)
+	rakeLengthInt := int(rakeLengthFloat)
+
+	//find number of trusses required for every 16 inches - use longer
+	//rakelonger / 16
+	studMap[findMinimum(rakeLengthInt * 2)] += longer / 16
+	return studMap
+}
+
+func CalculateGableRoofRakeLength(length int) float64 {
 	//find rake length (eg. 8ft width is 52) - use shorter
 	//find run (span / 2)
 	run := float64(length) / 2.0
+	//find pitch (5/12 or 22.5 degrees)
+	pitch := 5.0/12.0
+	//find verticalrise (pitch * run)
+	verticalRise := float64(pitch * run)
+	//find rake length (pythagorean theorem)
+	rakeLengthFloat:= math.Hypot(float64(verticalRise), float64(run))
+    return rakeLengthFloat
+}
+
+func CalculateLeanToRoofRakeLength(length int) float64 {
+	//find rake length (eg. 8ft width is 52) - use shorter
+	//find run (span / 2)
+	run := float64(length)
 	//find pitch (5/12 or 22.5 degrees)
 	pitch := 5.0/12.0
 	//find verticalrise (pitch * run)
@@ -236,11 +359,24 @@ func findFinishedPly(length, width, height int) map[int]int {
     return finishedPlyMap
 }
 
-func findRoofPly(length, width int) map[int]int {
+func findGableRoofPly(length, width int) map[int]int {
     roofPlyMap := make(map[int]int)
     sheetArea := 48 * 96
-    rakeLengthFloat := CalculateRoofRakeLength(width)
+    rakeLengthFloat := CalculateGableRoofRakeLength(width)
    
+
+    roofArea := (length * int(rakeLengthFloat)) * 2
+   
+
+    roofPlyMap[3] += int(math.Ceil(float64(roofArea) / float64(sheetArea)))
+
+    return roofPlyMap
+}
+
+func findLeanToRoofPly(length, width int) map[int]int {
+    roofPlyMap := make(map[int]int)
+    sheetArea := 48 * 96
+    rakeLengthFloat := CalculateLeanToRoofRakeLength(width)
 
     roofArea := (length * int(rakeLengthFloat)) * 2
    

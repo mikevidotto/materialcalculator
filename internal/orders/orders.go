@@ -20,6 +20,7 @@ type OrderData struct {
     Length int `json:"length"`
     Width int `json:"width"`
     Height int `json:"height"`
+    RoofType string `json:"roofType"`
     Notes string `json:"notes"`
     LumberData materialcalculator.LumberData
 }
@@ -34,6 +35,7 @@ func NewOrder(order OrderData) error {
         Length: order.Length,
         Width: order.Width,
         Height: order.Height,
+        RoofType: order.RoofType,
     }
 
     order.LumberData = materialcalculator.CalculateShedMaterials(shedData)
