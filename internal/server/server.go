@@ -5,51 +5,57 @@ import (
     "net/http"
     "log"
     "materialcalculator/internal/materialcalculator"
+    "materialcalculator/internal/orders"
     "encoding/json"
     "path/filepath"
 )
 
 func StartServer() {
+
+    router := http.NewServeMux()
+    server := http.Server {
+        Addr: "localhost:8085",
+        Handler: router,
+    }
+
     filepath, _ := filepath.Abs("./frontend/")
+
     fmt.Println("looking for frontend path, ", filepath) 
     fs := http.FileServer(http.Dir(filepath))
 
-
-    http.Handle("/", http.StripPrefix("/", fs))
-    http.HandleFunc("/api/calculate", CalculateMaterials)
+    router.Handle("/", fs)
+    router.HandleFunc("/api/calculate", NewShedHandler)
 
     log.Println("starting server on localhost:8085...")
-    err := http.ListenAndServe(":8085", nil)
+    err := server.ListenAndServe()
     if err != nil {
-        log.Fatal("error starting server: ", err)
+        log.Fatal("Error starting server: ", err)
     }
 }
 
-
-func CalculateMaterials(w http.ResponseWriter, r *http.Request) {
-    fmt.Println("fdjksa")
+/*
+this handler should 
+1. validate the json request and decode json data into OrderData{}
+2. invoke the business layer function NewOrder(orderData)
+3. generate a response.
+*/
+func NewShedHandler(w http.ResponseWriter, r *http.Request) {
     if r.Method != http.MethodPost{
         http.Error(w, "Method now allowed", http.StatusMethodNotAllowed)
     }
-    shed := materialcalculator.ShedData{}
 
-    err := json.NewDecoder(r.Body).Decode(&shed)
+    newOrder := orders.OrderData{}
+
+    err := json.NewDecoder(r.Body).Decode(&newOrder)
     if err != nil {
         http.Error(w, "Error decoding json body: "+err.Error(), http.StatusBadRequest)
         return
     }
 
+    fmt.Printf("%#v\n", newOrder)
 
-    fmt.Printf("\n\nShed Received:\n%#v\n", shed, "\n")
-    shed.Length = shed.Length * 12
-    shed.Width = shed.Width * 12
-    shed.Height = shed.Height * 12
-
-    lumber := materialcalculator.CalculateMaterials(shed)
-
-    fmt.Printf("%#v\n", lumber)
+    orders.NewOrder(newOrder)
 
     w.WriteHeader(http.StatusOK)
     w.Write([]byte("Shed Materials Data received."))
 }
-
