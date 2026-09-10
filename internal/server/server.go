@@ -7,6 +7,7 @@ import (
     "materialcalculator/internal/orders"
     "encoding/json"
     "path/filepath"
+    "time"
 )
 
 func StartServer() {
@@ -15,12 +16,15 @@ func StartServer() {
     server := http.Server {
         Addr: "localhost:8085",
         Handler: router,
+        ReadTimeout: 5 * time.Second,
+        WriteTimeout: 10 * time.Second,
+        IdleTimeout: 60 * time.Second,
     }
 
-    filepath, _ := filepath.Abs("./frontend/")
+    frontendPath, _ := filepath.Abs("./frontend/")
 
-    fmt.Println("looking for frontend path, ", filepath) 
-    fs := http.FileServer(http.Dir(filepath))
+    fmt.Println("looking for frontend path, ", frontendPath)
+    fs := http.FileServer(http.Dir(frontendPath))
 
     router.Handle("/", fs)
     router.HandleFunc("/api/calculate", NewShedHandler)
@@ -39,8 +43,9 @@ this handler should
 3. generate a response.
 */
 func NewShedHandler(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodPost{
-        http.Error(w, "Method now allowed", http.StatusMethodNotAllowed)
+    if r.Method != http.MethodPost {
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+        return
     }
 
     newOrder := orders.OrderData{}
@@ -51,10 +56,15 @@ func NewShedHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    fmt.Printf("%#v\n", newOrder)
+    result, err := orders.NewOrder(newOrder)
+    if err != nil {
+        http.Error(w, "Error calculating materials: "+err.Error(), http.StatusBadRequest)
+        return
+    }
 
-    orders.NewOrder(newOrder)
-
+    w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
-    w.Write([]byte("Shed Materials Data received."))
+    if err := json.NewEncoder(w).Encode(result); err != nil {
+        log.Println("Error encoding response:", err)
+    }
 }

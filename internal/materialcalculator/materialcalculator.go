@@ -144,13 +144,16 @@ func findBaseStuds(longer int, shorter int) (map[int]int) {
     studMap := make(map[int]int)
     
     if (longer > 192) {
-        studMap[findMinimum(shorter)]+=(((longer%192)) / 16) +1
-        if (findMinimum((longer%192)) / (longer%192) ) >= 2 {
-            studMap[findMinimum((longer%192))]+=1
-        } else {
-            studMap[findMinimum((longer%192))]+=2
+        remainder := longer % 192
+        if remainder != 0 {
+            studMap[findMinimum(shorter)]+=(remainder / 16) +1
+            if (findMinimum(remainder) / remainder ) >= 2 {
+                studMap[findMinimum(remainder)]+=1
+            } else {
+                studMap[findMinimum(remainder)]+=2
+            }
         }
-        longer -= (longer%192)
+        longer -= remainder
     }
 
     studMap[findMinimum(shorter)] += ((longer ) / 16) + 1
@@ -168,20 +171,22 @@ func findLeanToWallStuds(longer, shorter, height1, height2 int) (map[int]int) {
 	//each short wall will lose 7 inches on each side since they will join with each existing long wall.
 	shorter = shorter-7
     remainderwall := (longer%192)
-    
+
 	//if wall is longer than 16feet, find the materials for the remainder (eg. 20ft wall would need to calculate materials for a 4 foot wall and a 16 foot wall)
     if (longer > 192) {
-        studMap[findMinimum(height1)]+=((remainderwall) / 24) +1
-        //fmt.Println((remainderwall / 24) + 1)
-        studMap[findMinimum(height2)]+=((remainderwall) / 24) +1
-        //fmt.Println((remainderwall / 24) + 1)
-		//if the minimum plate required divided by the length needed is greater than 2, we can use one stud for the same plate, so only add one.
-        if (findMinimum(remainderwall) / (longer%192) ) >= 2 {
-            //fmt.Println("2")
-            studMap[findMinimum(remainderwall)]+=2
-        } else {
-            //fmt.Println("4")
-            studMap[findMinimum(remainderwall)]+=4
+        if remainderwall != 0 {
+            studMap[findMinimum(height1)]+=((remainderwall) / 24) +1
+            //fmt.Println((remainderwall / 24) + 1)
+            studMap[findMinimum(height2)]+=((remainderwall) / 24) +1
+            //fmt.Println((remainderwall / 24) + 1)
+            //if the minimum plate required divided by the length needed is greater than 2, we can use one stud for the same plate, so only add one.
+            if (findMinimum(remainderwall) / remainderwall ) >= 2 {
+                //fmt.Println("2")
+                studMap[findMinimum(remainderwall)]+=2
+            } else {
+                //fmt.Println("4")
+                studMap[findMinimum(remainderwall)]+=4
+            }
         }
         longer -= remainderwall
     }
@@ -229,20 +234,22 @@ func findGableWallStuds(longer, shorter, height int) (map[int]int) {
 	//each short wall will lose 7 inches on each side since they will join with each existing long wall.
 	shorter = shorter-7
     remainderwall := (longer%192)
-    
+
 	//if wall is longer than 16feet, find the materials for the remainder (eg. 20ft wall would need to calculate materials for a 4 foot wall and a 16 foot wall)
     if (longer > 192) {
-        studMap[findMinimum(height)]+=((remainderwall) / 24) +1
-        //fmt.Println((remainderwall / 24) + 1)
-        studMap[findMinimum(height)]+=((remainderwall) / 24) +1
-        //fmt.Println((remainderwall / 24) + 1)
-		//if the minimum plate required divided by the length needed is greater than 2, we can use one stud for the same plate, so only add one.
-        if (findMinimum(remainderwall) / (longer%192) ) >= 2 {
-            //fmt.Println("2")
-            studMap[findMinimum(remainderwall)]+=2
-        } else {
-            //fmt.Println("4")
-            studMap[findMinimum(remainderwall)]+=4
+        if remainderwall != 0 {
+            studMap[findMinimum(height)]+=((remainderwall) / 24) +1
+            //fmt.Println((remainderwall / 24) + 1)
+            studMap[findMinimum(height)]+=((remainderwall) / 24) +1
+            //fmt.Println((remainderwall / 24) + 1)
+            //if the minimum plate required divided by the length needed is greater than 2, we can use one stud for the same plate, so only add one.
+            if (findMinimum(remainderwall) / remainderwall ) >= 2 {
+                //fmt.Println("2")
+                studMap[findMinimum(remainderwall)]+=2
+            } else {
+                //fmt.Println("4")
+                studMap[findMinimum(remainderwall)]+=4
+            }
         }
         longer -= remainderwall
     }

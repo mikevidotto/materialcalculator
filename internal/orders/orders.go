@@ -22,10 +22,17 @@ type OrderData struct {
     Height int `json:"height"`
     RoofType string `json:"roofType"`
     Notes string `json:"notes"`
-    LumberData materialcalculator.LumberData
+    LumberData materialcalculator.LumberData `json:"lumberData"`
 }
 
-func NewOrder(order OrderData) error {
+func NewOrder(order OrderData) (OrderData, error) {
+    if order.Length <= 0 || order.Width <= 0 || order.Height <= 0 {
+        return order, fmt.Errorf("length, width, and height must be positive")
+    }
+    if order.RoofType != "gable" && order.RoofType != "lean-to" {
+        return order, fmt.Errorf("roofType must be %q or %q", "gable", "lean-to")
+    }
+
     //convert feet to inches
     order.Length = order.Length * 12
     order.Width = order.Width * 12
@@ -39,7 +46,6 @@ func NewOrder(order OrderData) error {
     }
 
     order.LumberData = materialcalculator.CalculateShedMaterials(shedData)
-    fmt.Printf("lumber data: %#v", order.LumberData)
 
-    return nil
+    return order, nil
 }
