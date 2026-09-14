@@ -1,6 +1,6 @@
 # Shed Material Calculator
 
-### Test the application
+### Test the application in your terminal:
 
 ```
 git clone http://github.com/mikevidotto/materialcalculator
