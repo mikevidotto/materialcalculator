@@ -3,11 +3,13 @@
 
 ### Test the application
 
-`git clone http://github.com/mikevidotto/materialcalculator`
+```
+git clone http://github.com/mikevidotto/materialcalculator
 
-`cd materialcalculator`
+cd materialcalculator
 
-`go run .`
+go run .
 
-`open a browser and navigate to localhost:8085`
+open a browser and navigate to localhost:8085
+```
 
