@@ -3,6 +3,7 @@ package orders
 import (
     "fmt"
     "materialcalculator/internal/materialcalculator"
+    "materialcalculator/internal/list"
 )
 /*
         name: formData.get("name").trim(),
@@ -20,7 +21,7 @@ type OrderData struct {
     Length int `json:"length"`
     Width int `json:"width"`
     Height int `json:"height"`
-    RoofType string `json:"roofType"`
+    RoofType string `json:"rooftype"`
     Notes string `json:"notes"`
     LumberData materialcalculator.LumberData
 }
@@ -39,6 +40,11 @@ func NewOrder(order OrderData) error {
     }
 
     order.LumberData = materialcalculator.CalculateShedMaterials(shedData)
+
+    err := list.CreateListFile(order.LumberData)
+    if err != nil {
+        return err
+    }
     fmt.Printf("lumber data: %#v", order.LumberData)
 
     return nil

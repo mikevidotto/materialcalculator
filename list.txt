@@ -1,0 +1,12 @@
+Studs
+
+2x4x8: 38
+2x4x19: 9
+2x4x12: 6
+2x4x16: 0
+
+Sheets
+
+3/4": 3
+1/2": 4
+SmartSide: 10
